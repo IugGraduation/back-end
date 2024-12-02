@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\User;
 use App\Http\Controllers\Controller;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\Post;
 use App\Models\Specialization;
 use App\Models\Upload;
 use App\Models\User;
@@ -165,6 +166,7 @@ class UserController extends Controller
     public function updateStatus($status, $sup)
     {
         $uuids = explode(',', $sup);
+Post::query()->whereIn('user_uuid',$uuids)->update(['status',0]);
 
         $activate = User::query()->withoutGlobalScope('status')
             ->whereIn('uuid', $uuids)
@@ -176,9 +178,5 @@ class UserController extends Controller
         ]);
     }
 
-    public function country($uuid)
-    {
-        $City = City::where("country_uuid", $uuid)->pluck("name", "uuid");
-        return $City;
-    }
+
 }

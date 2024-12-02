@@ -118,6 +118,7 @@ class PostController extends Controller
         $post = Post::query()->where('uuid',$request->post_uuid)->where('user_uuid',$user->uuid)->first();
 
         $rules = [
+            'status'=>'required|in:0,1',
             'images' => 'required',
             'images.*' => 'required|mimes:jpeg,jpg,png',
             'name' => 'required|string',
@@ -132,7 +133,7 @@ class PostController extends Controller
             return mainResponse(false, $validator->errors()->first(), [], $validator->errors()->messages(), 101);
         }
      if ($post){
-         $post->update($request->only('name', 'details', 'category_uuid', 'place'));
+         $post->update($request->only('name','status', 'details', 'category_uuid', 'place'));
          if (isset($request->delete_images)) {
              $images = Upload::query()->where('imageable_type',Post::class)->where('imageable_id',$post->uuid)->whereNotIn('uuid', $request->delete_images)->get();
 

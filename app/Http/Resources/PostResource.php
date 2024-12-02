@@ -16,10 +16,12 @@ class PostResource extends JsonResource
     {
         return [
             'uuid' => $this->uuid,
+            'user_uuid' => $this->user_uuid,
             'user_name' => $this->user->name,
             'user_image' => $this->user->image,
             'post_image' => $this->attachments[0]['attachment'],
             'post_name' => $this->name,
+            'status' => $this->status_name,
             'post_details' => $this->details,
             'num_offers'=>$this->offers()->count(),
 

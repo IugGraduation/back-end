@@ -128,10 +128,10 @@ class HomeController extends Controller
             $items = pageResource(Category::query()->paginate(), CategoryResource::class);
 
         } elseif ($type == 'top_interactive') {
-            $items = pageResource(Post::query()->paginate(), PostResource::class);
+            $items = pageResource(Post::query()->where('status',Post::ACTIVE)->paginate(), PostResource::class);
 
         } elseif ($type == 'recent_posts') {
-            $items = pageResource(Post::query()->orderByDesc('created_at')->paginate(), PostResource::class);
+            $items = pageResource(Post::query()->where('status',Post::ACTIVE)->orderByDesc('created_at')->paginate(), PostResource::class);
 
         }
 
@@ -140,7 +140,7 @@ class HomeController extends Controller
     }
 
     public function getPostsFromCategory($uuid){
-            $items = pageResource(Post::query()->where('category_uuid',$uuid)->paginate(), PostResource::class);
+            $items = pageResource(Post::query()->where('status',Post::ACTIVE)->where('category_uuid',$uuid)->paginate(), PostResource::class);
             return mainResponse(true, "done", compact('items'), [], 200);
 
 
@@ -153,8 +153,8 @@ class HomeController extends Controller
     public function search(Request $request)
     {
         $rules = [
-            'search' => 'required|string',
-            'city_uuid' => 'nullable|exists:cities,uuid',
+            'search' => 'nullable|string',
+            'category_uuid' => 'nullable|exists:categories,uuid',
         ];
         $validator = Validator::make($request->all(), $rules);
         if ($validator->fails()) {
@@ -181,29 +181,16 @@ class HomeController extends Controller
             ]
         );
         $search = $request->search;
-        $city_uuid = $request->city_uuid;
-        $products = Product::query()
+        $category_uuid = $request->category_uuid;
+        $posts = Post::query()->where('status',Post::ACTIVE)
             ->where('name', 'like', '%' . $search . '%')
-            ->when($city_uuid, function ($q) use ($city_uuid) {
-                $q->whereHas('user', function ($q) use ($city_uuid) {
-                    $q->where("city_uuid", $city_uuid);
-                });
+            ->when($category_uuid, function ($q) use ($category_uuid) {
+                $q->where('category_uuid',$category_uuid);
             })->get();
-        $locations = Location::query()
-            ->where('name', 'like', '%' . $search . '%')
-            ->when($city_uuid, function ($q) use ($city_uuid) {
-                $q->whereHas('user', function ($q) use ($city_uuid) {
-                    $q->where("city_uuid", $city_uuid);
-                });
-            })->get();
-        $items = new Collection();
-        $items = $items->merge($products);
-        $items = $items->merge($locations);
-        $items = paginate($items);
-        $items = pageResource($items, ProductResource::class);
-        $city = City::query()->select('uuid', 'name')->first();
-        $city = new CityResource($city);
-        return mainResponse(true, "done", compact('items', 'city'), [], 200);
+
+        $items = paginate($posts);
+        $items = pageResource($items, PostResource::class);
+        return mainResponse(true, "done", compact('items',), [], 200);
 
     }
 
@@ -221,6 +208,21 @@ class HomeController extends Controller
         }
         return mainResponse(true, "done", compact('items'), [], 200);
     }
+    public function deleteHistorySearch(Request $request, $uuid = null)
+    {
+        $user_uuid = auth('sanctum')->id();
+        if ($uuid) {
+            Search::query()->where('fcm_token', $request->fcm_token)->when($user_uuid, function ($q) use ($user_uuid) {
+                $q->orWhere('user_uuid', $user_uuid);
+            })->findOrFail($uuid)->delete();
+        } else {
+            Search::query()->where('fcm_token', $request->fcm_token)->when($user_uuid, function ($q) use ($user_uuid) {
+                $q->orWhere('user_uuid', $user_uuid);
+            })->delete();
+        }
+        return mainResponse(true, "done", [], [], 200);
+    }
+
 
 
     public function notifications()

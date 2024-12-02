@@ -529,6 +529,38 @@
                 });
             });
         });
+        $(document).on('click', '.dropdown-item', function (event) {
+            var button = $(this)
+            console.log(button.data('url'))
+            $.ajax({
+                type: "post",
+                cache: false,
+                contentType: false,
+                processData: false,
+                url: button.data('url'),
+
+                beforeSend: function () {
+                },
+                success: function (result) {
+                    toastr.success('@lang('done_successfully')', '', {
+                        rtl: isRtl
+                    });
+                    table.draw()
+                },
+                error: function (data) {
+                    if (data.status === 422) {
+                        var response = data.responseJSON;
+                        $.each(response.errors, function (key, value) {
+                            toastr.error(value);
+                        });
+                    } else {
+                        toastr.error('@lang('something_wrong')', '', {
+                            rtl: isRtl
+                        });
+                    }
+                }
+            });
+        });
 
     </script>
 

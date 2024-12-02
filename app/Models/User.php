@@ -27,13 +27,12 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'social_id',
-        'social_type',
+        'place',
         'email',
         'password',
-        'city_uuid',
-        'country_uuid',
         'mobile',
+        'status',
+        'bio'
     ];
 
     /**
@@ -65,6 +64,14 @@ class User extends Authenticatable
     public function city()
     {
         return $this->belongsTo(City::class, 'city_uuid');
+    }
+    public function posts()
+    {
+        return $this->hasMany(Post::class, 'user_uuid');
+    }
+    public function offers()
+    {
+        return $this->hasMany(Offer::class, 'user_uuid');
     }
     public function country()
     {
@@ -104,9 +111,9 @@ class User extends Authenticatable
         self::creating(function ($item) {
             $item->uuid = Str::uuid();
         });
-//        static::addGlobalScope('user', function (Builder $builder) {
-//            $builder->where('status', 1);//1==active
-//        });
+        static::addGlobalScope('status', function (Builder $builder) {
+            $builder->where('status', 1);//1==active
+        });
 
     }
 }

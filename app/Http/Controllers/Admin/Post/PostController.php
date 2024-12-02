@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Country;
+use App\Models\LostAndFound;
+use App\Models\Notification;
 use App\Models\Post;
 use App\Models\PostCategory;
 use App\Models\Specialization;
@@ -179,19 +181,47 @@ class PostController extends Controller
 
 
                 return $string;
-            })->addColumn('status', function ($que) {
+            })
+            ->addColumn('status', function ($que) {
                 $currentUrl = url('/');
-                if ($que->status == 1) {
-                    $data = '
-<button type="button"  data-url="' . $currentUrl . "/admin/posts/updateStatus/0/" . $que->uuid . '" id="btn_update" class=" btn btn-sm btn-outline-success " data-uuid="' . $que->uuid .
-                        '">' . __('active') . '</button>
-                    ';
-                } else {
-                    $data = '
-<button type="button"  data-url="' . $currentUrl . "/admin/posts/updateStatus/1/" . $que->uuid . '" id="btn_update" class=" btn btn-sm btn-outline-danger " data-uuid="' . $que->uuid .
-                        '">' . __('inactive') . '</button>
-                    ';
+                if ($que->status == 0){
+                    $color='warning';
+                }elseif ($que->status == 2){
+                    $color='danger';
+                }else{
+                    $color='success';
+
                 }
+
+                $data = '
+                     <div class="btn-group">
+<button type="button"  class=" btn btn-sm btn-outline-'.$color.' ropdown-toggle" data-toggle="dropdown" data-uuid="' . $que->uuid .
+                    '">' . $que->status_name . '</button>
+ <div class="dropdown-menu">
+                                                                        <button class="dropdown-item" data-url="' . route('posts.updateStatus',[$que->uuid,Post::ACTIVE]) . '">
+                                                                            <i data-feather="edit-2" class="mr-50"></i>
+                                                                            <span>' . __('Active') . '</span>
+                                                                        </button>
+                                                                        <button class="dropdown-item" data-url="' .route('posts.updateStatus',[$que->uuid,Post::REJECT]) . '">
+                                                                            <i data-feather="edit-2" class="mr-50"></i>
+                                                                            <span>' . __('Rejected') . '</span>
+                                                                        </button>
+                                                                        <button class="dropdown-item" data-url="' . route('posts.updateStatus',[$que->uuid,Post::PENDING]). '">
+                                                                            <i data-feather="edit-2" class="mr-50"></i>
+                                                                            <span>' . __('Pending') . '</span>
+                                                                        </button>
+                                                                        <button class="dropdown-item" data-url="' . route('posts.updateStatus',[$que->uuid,Post::CLOSE]). '">
+                                                                            <i data-feather="edit-2" class="mr-50"></i>
+                                                                            <span>' . __('Close') . '</span>
+                                                                        </button>
+                                                                        </div>
+                                                                </div>
+                                                          </div>
+
+                    ';
+
+
+
                 return $data;
             })
             ->rawColumns(['action', 'status'])->toJson();
@@ -210,5 +240,27 @@ class PostController extends Controller
             'item_edited'
         ]);
     }
+    public function status($uuid, $status)
+    {
+        $data = Post::query()->find($uuid);
+        $data->status = $status;
+        if (isset($data) && $data->save()) {
+
+            if ($status==Post::ACTIVE){
+                $title='ACTIVEACTIVE';
+                $this->sendNotification($uuid, Post::class, \auth('web')->id(), $data->user_uuid, Notification::STATUS_POST, 'admin', 'user',$title);
+
+            }elseif ($status==Post::REJECT){
+                $title='REJECTREJECT';
+                $this->sendNotification($uuid, Post::class, \auth('web')->id(), $data->user_uuid, Notification::STATUS_POST, 'admin', 'user',$title);
+
+            }
+
+            return response()->json([
+                'item_edited'
+            ]);
+        }
+    }
+
 
 }

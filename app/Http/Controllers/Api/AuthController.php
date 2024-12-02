@@ -100,12 +100,15 @@ class AuthController extends Controller
         }
         $item = Verification::query()->where('mobile', $request->mobile)->first();
         if ($item && Hash::check($request->code, $item->code)) {
-            $user = User::query()->where('mobile', $request->mobile)->first();
+            $user = User::query()->where('mobile', $request->mobile)->withoutGlobalScope('status')->first();
             $token = $user->createToken('api')->plainTextToken;
             FcmToken::query()->create([
                 "user_uuid" => $user->uuid,
                 "fcm_device" => $request->fcm_device,
                 "fcm_token" => $request->fcm_token
+            ]);
+            $user->update([
+                'status'=>1
             ]);
             Verification::query()->where('mobile', $request->mobile)->delete();
 
@@ -159,7 +162,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $token = $request->bearerToken();
-        $user = Auth::guard('sanctum')->user();
+           $user = Auth::guard('sanctum')->user();
 
         $user->fcm_tokens()->where('fcm_token', $request->fcm_token)->delete();
         if ($token === null) {

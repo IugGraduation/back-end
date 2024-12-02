@@ -84,7 +84,7 @@ Route::group(
                 Route::post('/update', 'update')->name('update');
                 Route::delete('/{id}', 'destroy')->name('delete');
                 Route::get('/indexTable', 'indexTable')->name('indexTable');
-                Route::put('/updateStatus/{status}/{id}', 'updateStatus')->name('updateStatus');
+                Route::post('/updateStatus/{status}/{id}', 'status')->name('updateStatus');
             });
             Route::controller(\App\Http\Controllers\Admin\AdminController::class)->name('managers.')->prefix('managers')->group(function () {
                 Route::get('/', 'index')->name('index');

@@ -83,6 +83,8 @@ class OfferController extends Controller
          UploadImage($request->image, Offer::PATH_IMAGE, Offer::class, $offer->uuid, false, null, Upload::IMAGE,);
      }
      $uuid=$offer->uuid;
+     $this->sendNotification($offer->uuid, Offer::class, Auth::guard('sanctum')->id(), $offer->post->user_uuid, Notification::NEW_OFFER, 'user', 'user');
+
      return mainResponse(true, 'done',compact('uuid'), []);
  }
  public function editOffer($uuid){

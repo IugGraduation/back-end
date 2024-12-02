@@ -16,6 +16,7 @@ class DetailsPostResource extends JsonResource
     {
         return [
             'uuid' => $this->uuid,
+            'user_uuid' => $this->user_uuid,
             'user_name' => $this->user->name,
             'user_image' => $this->user->image,
             'post_image' => $this->attachments[0]['attachment'],

@@ -20,8 +20,14 @@ class Post extends Model
 
     protected $guarded = [];
     const PATH_IMAGE = "/upload/post";
-    const OPEN='open';
-    const CLOSE='close';
+//    const OPEN='open';
+//    const CLOSE='close';
+    const ACTIVE=1;
+    const CLOSE=3;
+
+    const PENDING=0;
+    const REJECT=2;
+
 
     //Relations
     public function user()
@@ -77,7 +83,16 @@ class Post extends Model
     }
     public function getStatusNameAttribute()
     {
-        return ($this->status==1)?self::OPEN:self::CLOSE;
+        if ($this->status==self::PENDING){
+            return __('Pending');
+        }elseif ($this->status==self::ACTIVE){
+            return __('Active');
+        }elseif($this->status==self::REJECT){
+            return __('Rejected');
+        }else{
+            return __('Close');
+
+        }
     }
 
 
