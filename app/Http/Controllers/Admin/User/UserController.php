@@ -166,13 +166,17 @@ class UserController extends Controller
     public function updateStatus($status, $sup)
     {
         $uuids = explode(',', $sup);
-Post::query()->whereIn('user_uuid',$uuids)->update(['status',0]);
+//        dd($uuids[0]);
 
         $activate = User::query()->withoutGlobalScope('status')
             ->whereIn('uuid', $uuids)
             ->update([
                 'status' => $status
             ]);
+        return  Post::query()->whereIn('user_uuid',$uuids)->update(
+            ['status'=>0]
+        );
+
         return response()->json([
             'item_edited'
         ]);
